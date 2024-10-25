@@ -11,10 +11,10 @@ A stock performance tool based on the Capital Asset Pricing Model (CAPM). This p
 
 ## Installation
 
-You can install the `capm_metrics` package via pip:
+You can install the `capm-metrics` package via pip:
 
 ```bash
-pip install camp_metrics
+pip install capm-metrics
 ```
 
 ## Usage

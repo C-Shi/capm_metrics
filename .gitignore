@@ -1,3 +1,38 @@
-venv
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 
-.vscode
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+egg-info/
+.installed.cfg
+*.egg-info/
+*.egg
+*.whl
+*.tgz
+
+# Test files
+*.cover
+*.coverage
+nosetests.xml
+coverage.xml
+*.log
+.cache
+.pytest_cache/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.DS_Store
+
+# Virtual environment
+venv/
+ENV/
+env/

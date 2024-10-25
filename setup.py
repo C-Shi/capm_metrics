@@ -8,7 +8,7 @@ if os.path.exists('README.md'):
         long_description = fh.read()
 
 setup(
-    name="camp_metrics",
+    name="capm-metrics",
     version="0.1.0",
     author="Cheng Shi",  # Replace with your actual name
     author_email="mr.cheng.shi@gmail.com",
