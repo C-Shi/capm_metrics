@@ -24,9 +24,9 @@ setup(
     ],
     python_requires='>=3.9',
     install_requires=[
-        'numpy',
-        'pandas',
-        'yfinance',
+        'numpy>=2.0.2',
+        'pandas>=2.2.3',
+        'yfinance>=0.2.46',
     ],
     license="MIT",
     keywords="CAPM stock analysis finance",
