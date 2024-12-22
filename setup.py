@@ -34,7 +34,11 @@ setup(
         "Bug Tracker": "https://github.com/C-Shi/capm_metrics/issues",
         "Documentation": "https://github.com/C-Shi/capm_metrics#readme",
     },
-    tests_require=[
-        'pytest',
-    ],
+    extras_require={
+        "dev": [
+            "pytest",
+            "pylint",
+            "pytest-cov"
+        ]
+    }
 )

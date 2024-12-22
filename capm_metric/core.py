@@ -1,3 +1,4 @@
+"""Core Module"""
 from collections import OrderedDict
 from typing import Tuple, Dict
 import yfinance as yf
@@ -7,9 +8,10 @@ import numpy as np
 TRADING_DAYS_PER_YEAR = 252
 
 class CAPMAnalyzer:
+    """Class for analyzing stock performance based on CAPM model"""
     def __init__(self):
         self._ticker = yf.Ticker
-   
+
     def _get_avg_treasury_10y_yield(self, **kwargs) -> float:
         """
         Fetches the historical data for the 10-year Treasury note
@@ -28,8 +30,13 @@ class CAPMAnalyzer:
         treasury_10y_his = treasury_10y.history(**kwargs)
         avg_yield = treasury_10y_his['Close'].mean()
         return float(avg_yield)
-    
-    def _fetch_stock_data(self, symbol: str, is_market: bool = False, **kwargs) -> Tuple[Dict[str, str], pd.DataFrame]:
+
+    def fetch_stock_data(
+        self,
+        symbol: str,
+        is_market: bool = False,
+        **kwargs
+    ) -> Tuple[Dict[str, str], pd.DataFrame]:
         """
         Fetches historical stock data for a given symbol.
 
@@ -59,7 +66,9 @@ class CAPMAnalyzer:
         df = stock.history(**kwargs)[['Close']]
 
         if df.empty:
-            raise ValueError(f"No data found for symbol {symbol}. Possible wrong symbol or no data available for the specified period.")
+            raise ValueError(
+                f"No data found for symbol {symbol}. "
+                f"Possible wrong symbol or no data available for the specified period.")
 
         if is_market:
             df.rename(columns={'Close': "market"}, inplace=True)
@@ -69,8 +78,6 @@ class CAPMAnalyzer:
 
         return stock.info, df
 
-
-    
     def _actual_return(self, end: np.float64, start: np.float64) -> np.float64:
         """
         Calculates the actual return of an investment.
@@ -90,7 +97,6 @@ class CAPMAnalyzer:
             raise ValueError("Start price cannot be zero")
         return (end - start) / start
 
-    
     def analyze(self, symbol: str, market: str = "^GSPC", **kwargs) -> OrderedDict:
         """
         Analyzes the stock and calculates CAPM metrics.
@@ -125,10 +131,10 @@ class CAPMAnalyzer:
         if 'period' not in kwargs and not ('start' in kwargs and 'end' in kwargs):
             raise ValueError("Either 'period' or both 'start' and 'end' must be specified.")
         # get stock data
-        symbol_info, symbol_df = self._fetch_stock_data(symbol, **kwargs)
+        symbol_info, symbol_df = self.fetch_stock_data(symbol, **kwargs)
 
         # get market data
-        _, market_df = self._fetch_stock_data(market, is_market=True, **kwargs)
+        _, market_df = self.fetch_stock_data(market, is_market=True, **kwargs)
 
         stock_df = pd.merge(symbol_df, market_df, how="inner", on="Date")
         # Calculate daily return and market daily return
@@ -147,7 +153,7 @@ class CAPMAnalyzer:
         rf = self._get_avg_treasury_10y_yield(**kwargs)
 
         # calculate annualized market return
-        average_daily_return = stock_df["Daily Return Market"].mean() 
+        average_daily_return = stock_df["Daily Return Market"].mean()
         rm = average_daily_return * TRADING_DAYS_PER_YEAR
 
         # R_exp = R_risk_free + beta * (R_market - R_risk_free)
@@ -155,7 +161,7 @@ class CAPMAnalyzer:
         r_exp = rf + beta * (rm - rf)
 
         r_act = self._actual_return(stock_df[symbol].iloc[-1], stock_df[symbol].iloc[0])
-        
+
         return OrderedDict({
             "company_name": symbol_info['longName'],
             "symbol": symbol,
