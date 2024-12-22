@@ -22,26 +22,26 @@ class TestCAPMAnalyzer(TestCase):
 
     @patch("capm_metric.core.yf.Ticker")
     def test_fetch_stock_data(self, mock_ticker):
-        """Test protected method _fetch_stock_data"""
+        """Test protected method fetch_stock_data"""
         analyzer = CAPMAnalyzer()
 
         # scenario 1 => if no close data raise value error
         mock_ticker.return_value.history.return_value = pd.DataFrame(columns=['Close'])
         with self.assertRaises(ValueError):
-            analyzer._fetch_stock_data("AAPL")
+            analyzer.fetch_stock_data("AAPL")
 
         mock_ticker.return_value.history.return_value = pd.DataFrame({
             "Close": [1.0, 2.0, 3.0, 4.0, 5.0]
         })
         # scenario 2 => rename columns and return for market
-        _, mock_market = analyzer._fetch_stock_data(ANY, is_market=True, period="5d")
+        _, mock_market = analyzer.fetch_stock_data(ANY, is_market=True, period="5d")
         pd.testing.assert_frame_equal(mock_market, pd.DataFrame({
             "market": [1.0, 2.0, 3.0, 4.0, 5.0]
 
         }, index=pd.RangeIndex(start=0, stop=5, name='Date')))
 
         # scenario 3 => rename columns and return for stock
-        mock_info, mock_df = analyzer._fetch_stock_data("AAPL", period="5d")
+        mock_info, mock_df = analyzer.fetch_stock_data("AAPL", period="5d")
 
         self.assertEqual(mock_info, mock_ticker.return_value.info)
         pd.testing.assert_frame_equal(mock_df, pd.DataFrame({
@@ -81,7 +81,7 @@ class TestCAPMAnalyzer(TestCase):
             "market": [1000, 2000, 3000, 4000, 5000]
         }, index=pd.date_range(start="2024-12-16", end="2024-12-20", name="Date")))
         with patch(
-            "capm_metric.core.CAPMAnalyzer._fetch_stock_data",
+            "capm_metric.core.CAPMAnalyzer.fetch_stock_data",
             side_effect=[stock_data_mock, market_data_mock]
         ) as fetch_stock_data_mock, patch(
             "capm_metric.core.CAPMAnalyzer._get_avg_treasury_10y_yield",
