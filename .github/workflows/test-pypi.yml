@@ -1,0 +1,33 @@
+name: Publish to TestPyPI
+
+on:
+  push:
+    branch:
+      - staging
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+  
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set Up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install build twine
+
+    - name: Build the package
+      run: python -m build
+
+    - name: Upload to Test PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+      
+      run: python -m twine upload --repository-url https://test.pypi.org/legacy dist/*
