@@ -1,4 +1,5 @@
 """Core Module"""
+import warnings
 from collections import OrderedDict
 from typing import Tuple, Dict
 import yfinance as yf
@@ -47,14 +48,22 @@ class CAPMAnalyzer:
             A flag indicating whether the data is for a market index.
             Default is False.
         
-        :kwargs:
-            period: str, optional
-                The period for which to fetch historical data. 
-                Valid periods: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max.
-            start: str, optional
-                Download start date string (YYYY-MM-DD) or datetime.
-            end: str, optional
-                Download end date string (YYYY-MM-DD) or datetime.
+        :param period: str, optional
+            The period for which to fetch historical data. 
+            Balid values: '1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'.
+            If specified, this will override the `start` and `end` for defining the range.
+            Note: `period` and `start`/`end` should not be used together. Choose one or the other.
+    
+        :param start: str or datetime, optional
+            The start date string in the format 'YYYY-MM-DD' or a datetime object. 
+            Used to specify the start date for the data range.
+            If `period` is not provided, `start` and `end` must be supplied together.
+
+        :param end: str or datetime, optional
+            The end date string in the format 'YYYY-MM-DD' or a datetime object. 
+            Used to specify the end date for the data range.
+            If `period` is provided, this parameter will be ignored.
+            If `start` is specified, `end` must also be supplied to define the range.
 
         :return: 
             Tuple[Dict[str, str], pd.DataFrame]: A tuple containing 
@@ -107,13 +116,22 @@ class CAPMAnalyzer:
         :param market: str, optional
             The market index symbol (default: ^GSPC).
 
-        :kwargs:
-            period: str, optional
-                Valid periods: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max.
-            start: str, optional
-                Download start date string (YYYY-MM-DD) or datetime, inclusive.
-            end: str, optional
-                Download end date string (YYYY-MM-DD) or datetime, exclusive.
+        :param period: str, optional
+            The period for which to fetch historical data. 
+            Valid values: '1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max'.
+            If specified, this will override the `start` and `end` for defining the range.
+            Note: `period` and `start`/`end` should not be used together. Choose one or the other.
+    
+        :param start: str or datetime, optional
+            The start date string in the format 'YYYY-MM-DD' or a datetime object. 
+            Used to specify the start date for the data range.
+            If `period` is not provided, `start` and `end` must be supplied together.
+
+        :param end: str or datetime, optional
+            The end date string in the format 'YYYY-MM-DD' or a datetime object. 
+            Used to specify the end date for the data range.
+            If `period` is provided, this parameter will be ignored.
+            If `start` is specified, `end` must also be supplied to define the range.
 
         :return: 
             OrderedDict: A dictionary containing the following keys:
@@ -130,8 +148,16 @@ class CAPMAnalyzer:
         """
         if 'period' not in kwargs and not ('start' in kwargs and 'end' in kwargs):
             raise ValueError("Either 'period' or both 'start' and 'end' must be specified.")
+
         # get stock data
         symbol_info, symbol_df = self.fetch_stock_data(symbol, **kwargs)
+
+        data_duration = symbol_df.index[-1] - symbol_df.index[0]
+        if data_duration.days < 365:
+            warnings.warn(
+                "Warning: Period less than 1 year may not provide accurate result",
+                stacklevel=2
+            )
 
         # get market data
         _, market_df = self.fetch_stock_data(market, is_market=True, **kwargs)
