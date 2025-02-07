@@ -168,15 +168,15 @@ class CAPMAnalyzer:
         stock_df["Daily Return Market"] = stock_df["market"].pct_change()
         stock_df.fillna(0, inplace=True)
 
+        # calculate market free return using US 10 year treasury note
+        rf = self._get_avg_treasury_10y_yield(**kwargs)
+
         # calculate alpha, beta using linear regression
         beta, _ = np.polyfit(
             stock_df["Daily Return Market"],
             stock_df["Daily Return"],
             deg=1
         )
-
-        # calculate market free return using US 10 year treasury note
-        rf = self._get_avg_treasury_10y_yield(**kwargs)
 
         # calculate annualized market return
         average_daily_return = stock_df["Daily Return Market"].mean()
@@ -193,6 +193,53 @@ class CAPMAnalyzer:
             "symbol": symbol,
             "start_date": stock_df.index[0].strftime('%Y-%m-%d'),
             "end_date": stock_df.index[-1].strftime('%Y-%m-%d'),
+            "expected_return": float(r_exp),
+            "actual_return": float(r_act),
+            "performance": "overperform" if r_act - r_exp > 0 else "underperform"
+        })
+
+    def analyze_local(self, stock_df: pd.DataFrame, r_act: float, risk_free_rate: float = 0.0):
+        """
+        Analyze stock performance based on daily returns.
+
+        :param stock_df: pd.DataFrame
+            A DataFrame containing at least:
+            - "Daily Return" (Stock's daily return)
+            - "Daily Return Market" (Market's daily return)
+        
+        :param r_act: float
+            The actual return of the stock (should be annualized).
+        
+        :param risk_free_rate: float, optional
+            The annualized risk-free rate, default is 0.0.
+        
+        :return: OrderedDict
+            - expected_return: Expected return based on CAPM.
+            - actual_return: The actual return provided.
+            - performance: Overperform or underperform relative to expected return.
+        """
+
+        stock_df = stock_df.sort_values("Date")
+        required_columns = [ "Date", "Daily Return", "Daily Return Market" ]
+
+        for c in required_columns:
+            if c not in stock_df.columns:
+                raise ValueError(f"Column {c} is missing")
+
+        if stock_df["Daily Return Market"].std() == 0:
+            raise ValueError("Market Return has zero variance")
+
+        beta, _ = np.polyfit(
+            stock_df["Daily Return Market"],
+            stock_df["Daily Return"],
+            deg=1
+        )
+
+        rm = stock_df["Daily Return Market"].mean() * TRADING_DAYS_PER_YEAR
+
+        r_exp = risk_free_rate + beta * (rm - risk_free_rate)
+
+        return OrderedDict({
             "expected_return": float(r_exp),
             "actual_return": float(r_act),
             "performance": "overperform" if r_act - r_exp > 0 else "underperform"
