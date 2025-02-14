@@ -9,11 +9,11 @@ if os.path.exists('README.md'):
 
 setup(
     name="capm-metrics",
-    version="0.1.0",
-    author="Cheng Shi",  # Replace with your actual name
+    version="0.1.1",
+    author="Cheng Shi",
     author_email="mr.cheng.shi@gmail.com",
     description="A stock performance tool based on the CAPM model",
-    long_description=long_description,  # Load README.md content
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/C-Shi/capm_metrics",
     packages=find_packages(),
